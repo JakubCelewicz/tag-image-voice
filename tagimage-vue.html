@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style type="text/css">
+        body {
+            text-align: center;
+            font-size: 18px;
+        }
+        .image_container {
+            padding: 5px;
+        }
+        .included {
+            background-color: black;
+            color: white;
+        }
+        .selected {
+            border: 2px solid blue;
+        }
+        .disabledDiv {
+            opacity: 0.5;
+            pointer-events: none;
+            padding: 10px;
+            background: #eeeeee;
+
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <input class="form-control" placeholder="New item" v-model="newStore" @keydown.enter="addStore"/>
+    <tags v-for="item in tags" v-bind:store="item.text" v-bind:key="item.index"> </tags>
+    <images v-for="item in images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
+</div>
+
+<script type="text/javascript">
+    const images = ['image1.jpg', 'image2.jpg', 'image3.jpg'];
+
+    Vue.component('images', {
+        props: ['image'],
+        template: `
+          <div class="image_container">
+            <label>
+                <img src="https://via.placeholder.com/100x100"
+                     v-bind:id=image
+                     alt:image
+                     title:image
+                     @click="selected"
+                     v-bind:class="{ selected: isSelected() }"
+                 />
+            </label>
+          </div>
+          `,
+        methods: {
+            selected() { this.$emit('selected') },
+            isSelected() { return this.$parent.selected === this.image }
+        },
+    });
+
+    Vue.component('tags', {
+        props: ['store'],
+        template: `<div v-bind:class="{ disabledDiv: !this.$parent.selected }">
+                        <button v-on:click="addToStore" v-bind:class="{ included: isIncluded() }" >
+                        {{ store }}
+                      </button>
+                  </div>`,
+        methods: {
+            addToStore() {
+                const storeArr = this.$parent.tags.find( obj => obj.text === this.store).images;
+                const isIncluded = storeArr.includes(this.$parent.selected);
+                if(!isIncluded) {
+                    storeArr.push(this.$parent.selected)
+                } else { // d
+                    for (let i=storeArr.length-1; i>=0; i--) {
+                        if (storeArr[i] === this.$parent.selected) {
+                            storeArr.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+                console.log('storeArr', storeArr);
+            },
+            isIncluded() {
+                return this.$parent.tags.find((obj) => obj.text === this.store).images.includes(this.$parent.selected);
+            }
+        }
+    });
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                images: images,
+                index: null,
+                newStore: '',
+                tags: [],
+                selected: '',
+            };
+        },
+        methods: {
+            addStore() {
+                this.tags.push({text: this.newStore, selected: false, images: []});
+                this.newStore = '';
+            },
+            selectImage(img) {
+                this.selected = img
+            },
+        },
+        watch: {
+            tags: {
+                handler() {
+                    console.log('Store changed!');
+                },
+                deep: true,
+            },
+        },
+    });
+</script>
+
+</body>
+</html>
