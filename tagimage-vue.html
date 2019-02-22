@@ -21,17 +21,29 @@
             opacity: 0.5;
             pointer-events: none;
             padding: 10px;
-            background: #eeeeee;
+
 
         }
+        .tags { padding: 10px }
+        .images > div { display: inline}
+        .tag {
+            padding: 10px;
+            display: inline;
+        }
+
     </style>
 </head>
 <body>
 
 <div id="app">
-    <input class="form-control" placeholder="New item" v-model="newStore" @keydown.enter="addStore"/>
-    <tags v-for="item in tags" v-bind:store="item.text" v-bind:key="item.index"> </tags>
-    <images v-for="item in images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
+    <input class="form-control" placeholder="add new tag" v-model="newStore" @keydown.enter="addStore"/>
+    <section class="tags">
+        <tags v-for="item in tags" v-bind:store="item.text" v-bind:key="item.index" class="tag"> </tags>
+    </section>
+    <section class="images">
+        <images v-for="item in images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
+    </section>
+
 </div>
 
 <script type="text/javascript">
@@ -71,7 +83,7 @@
                 const isIncluded = storeArr.includes(this.$parent.selected);
                 if(!isIncluded) {
                     storeArr.push(this.$parent.selected)
-                } else { // d
+                } else {
                     for (let i=storeArr.length-1; i>=0; i--) {
                         if (storeArr[i] === this.$parent.selected) {
                             storeArr.splice(i, 1);
