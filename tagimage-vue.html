@@ -7,6 +7,7 @@
             text-align: center;
             font-size: 18px;
         }
+        section { padding: 10px }
         .image_container {
             padding: 5px;
         }
@@ -25,7 +26,7 @@
 
         }
         .tags { padding: 10px }
-        .images > div { display: inline}
+        .images > div { display: inline; padding: 10px;}
         .tag {
             padding: 10px;
             display: inline;
@@ -42,6 +43,9 @@
     </section>
     <section class="images">
         <images v-for="item in images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
+    </section>
+    <section>
+        <download v-bind:store="tags"> download file</download>
     </section>
 
 </div>
@@ -99,30 +103,51 @@
         }
     });
 
+    Vue.component('download', {
+        props: ['store'],
+        template: `<button v-on:click="downloadList"> download List </button>`,
+        methods: {
+            createFile(exportObj, exportName) {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href",     dataStr);
+                downloadAnchorNode.setAttribute("download", exportName + ".json");
+                document.body.appendChild(downloadAnchorNode); // required for firefox
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            },
+            downloadList(){
+                this.createFile(this.store, 'list')
+            }
+        },
+
+    });
+
     new Vue({
         el: '#app',
         data: function () {
-            return {
-                images: images,
-                index: null,
-                newStore: '',
-                tags: [],
-                selected: '',
-            };
+            return { images: images, index: null, newStore: '', tags: [], selected: '' };
         },
         methods: {
             addStore() {
-                this.tags.push({text: this.newStore, selected: false, images: []});
-                this.newStore = '';
+                if (this.tags.findIndex(tag => tag.text === this.newStore) === -1) {
+                    this.tags.push({text: this.newStore, selected: false, images: []});
+                    this.newStore = '';
+                } else {
+                    console.log('tag exist')
+                }
             },
+
             selectImage(img) {
                 this.selected = img
             },
-        },
+    },
         watch: {
             tags: {
                 handler() {
                     console.log('Store changed!');
+                    console.log(this.tags);
+                    console.log(JSON.parse(JSON.stringify(this.tags)));
                 },
                 deep: true,
             },
