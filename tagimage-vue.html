@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
+    <script src="https://unpkg.com/vue@latest"></script>
+    <script src="https://unpkg.com/vue-select@latest"></script>
     <style type="text/css">
         body {
             text-align: center;
@@ -22,8 +24,14 @@
             opacity: 0.5;
             pointer-events: none;
             padding: 10px;
+        }
+        .filter-wrapper {
+            background: azure;
 
-
+        }
+        .dropdown {
+            float: right;
+            width: 150px;
         }
         .tags { padding: 10px }
         .images > div { display: inline; padding: 10px;}
@@ -31,18 +39,17 @@
             padding: 10px;
             display: inline;
         }
-
     </style>
 </head>
 <body>
-
 <div id="app">
     <input class="form-control" placeholder="add new tag" v-model="newStore" @keydown.enter="addStore"/>
     <section class="tags">
         <tags v-for="item in tags" v-bind:store="item.text" v-bind:key="item.index" class="tag"> </tags>
+        <v-select v-model="filtered" :options="getTags()"></v-select>
     </section>
     <section class="images">
-        <images v-for="item in images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
+        <images v-for="item in filteredImages || images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
     </section>
     <section>
         <download v-bind:store="tags"> download file</download>
@@ -103,6 +110,8 @@
         }
     });
 
+    Vue.component('v-select', VueSelect.VueSelect);
+
     Vue.component('download', {
         props: ['store'],
         template: `<button v-on:click="downloadList"> download List </button>`,
@@ -116,9 +125,35 @@
                 downloadAnchorNode.click();
                 downloadAnchorNode.remove();
             },
-            downloadList(){
+
+            createTextFile(filename, text) {
+                const element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            },
+
+            downloadListJson(){
                 this.createFile(this.store, 'list')
-            }
+            },
+
+            downloadList(){
+
+                console.log(this.store);
+                let textList = '';
+
+                this.store.forEach((item) => {
+                    if ( item.images.length > 0 ) {
+                        textList += '-----------------' + '*  ' + item.text + '  *' + '--------------------' + '\n \n';
+                        textList += item.images + '\n \n';
+                    }
+                });
+
+                this.createTextFile('list', textList)
+            },
         },
 
     });
@@ -126,7 +161,8 @@
     new Vue({
         el: '#app',
         data: function () {
-            return { images: images, index: null, newStore: '', tags: [], selected: '' };
+            return { images: images, index: null, newStore: '', tags: [], selected: '', filtered: null,
+            filteredImages: null};
         },
         methods: {
             addStore() {
@@ -141,6 +177,9 @@
             selectImage(img) {
                 this.selected = img
             },
+            getTags() {
+                return this.tags.map(t => t.text)
+            }
     },
         watch: {
             tags: {
@@ -148,9 +187,26 @@
                     console.log('Store changed!');
                     console.log(this.tags);
                     console.log(JSON.parse(JSON.stringify(this.tags)));
+                    console.log('this.store', this.store)
                 },
                 deep: true,
             },
+            filtered: {
+                handler() {
+
+                    if(this.filtered) {
+                        console.log('this.filtered', this.filtered)
+                        console.log('this.tags', this.tags)
+                        const filteredImages = this.tags.find(t => t.text === this.filtered).images
+                        console.log('filteredImages', filteredImages)
+                        if(filteredImages.length > 0) {
+                            this.filteredImages = filteredImages
+                        }
+                    } else {
+                        this.filteredImages = null
+                    }
+                }
+            }
         },
     });
 </script>
