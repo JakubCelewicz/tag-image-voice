@@ -49,12 +49,32 @@
 
 <!--<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>-->
 <!--<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>-->
-<script src="https://unpkg.com/react@16/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>
+<!--<script src="https://unpkg.com/react@16/umd/react.development.js"></script>-->
+<!--<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/react-select/2.4.1/react-select.js"></script>-->
+
+<script src="https://unpkg.com/react@16.7.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emotion@9.2.12/dist/emotion.umd.min.js"></script>
+<script src="https://unpkg.com/react-dom@16.7.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.5.10/prop-types.min.js"></script>
+<script src="https://unpkg.com/react-input-autosize@2.2.1/dist/react-input-autosize.min.js"></script>
+<script src="https://unpkg.com/react-select@2.1.2/dist/react-select.min.js"></script>
+
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
 <script type="text/babel">
 
     const images = ['image1.jpg', 'image2.jpg', 'image3.jpg'];
+    const scaryAnimals = [
+        { label: "Alligators", value: 1 },
+        { label: "Crocodiles", value: 2 },
+        { label: "Sharks", value: 3 },
+        { label: "Small crocodiles", value: 4 },
+        { label: "Smallest crocodiles", value: 5 },
+        { label: "Snakes", value: 6 },
+    ];
+    const Select = window.Select;
 
     class App extends React.Component{
         constructor(p){
@@ -69,7 +89,9 @@
             this.selectImage = this.selectImage.bind(this);
             this.tagImage = this.tagImage.bind(this);
             this.untagImage = this.untagImage.bind(this);
+            this.handleSelectFilter = this.handleSelectFilter.bind(this);
         }
+
         addTag(v){
             const { tags } = this.state;
             const alreadyExist = tags.find( t => t.name === v);
@@ -101,6 +123,10 @@
             if (index > -1) tagObj.images.splice(index, 1);
         }
 
+        handleSelectFilter(v){
+            console.log(v)
+        }
+
         render() {
             return (
                 <div className="app_container">
@@ -111,11 +137,15 @@
                         selectedImg={this.state.selectedImg}
                         selectedTag={this.state.selectedTag}
                     />
+                    <FilterDropDown tags={this.state.tags} handleSelectFilter={this.handleSelectFilter} />
                     <Images
                         selectImage={this.selectImage}
                         images={images}
                         selectedImg={this.state.selectedImg}
                     />
+
+                    <DownloadList list={this.state.tags} />
+
                 </div>
             )
         }
@@ -183,7 +213,7 @@
 
         handleOnKeyPress(e){
             if(e.charCode === 13){
-                e.preventDefault(); // Ensure it is only this code that rusn
+                e.preventDefault();
                 this.handleOnClick();
             }
         }
@@ -247,6 +277,61 @@
                         )
                     }
                 )
+            )
+        }
+    }
+
+    const DownloadList = ({ list }) => {
+        const createTextFile = (filename, text) => {
+            console.log(text);
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        };
+
+        const downloadList = ({ list }) => {
+
+            console.log(list);
+            let textList = '';
+
+            list.forEach((item) => {
+                if ( item.images.length > 0 ) {
+                    textList += '-----------------' + '*  ' + item.text + '  *' + '--------------------' + '\n \n';
+                    textList += item.images + '\n \n';
+                }
+            });
+
+            this.createTextFile('list', textList)
+        };
+
+        return (
+            <div>
+                <button onClick={downloadList} > List </button>
+            </div>
+        )
+    };
+
+    class FilterDropDown extends React.Component {
+        constructor(p) {
+            super(p);
+        }
+
+        render(){
+            const options = this.props.tags.map(t => {
+               return {label: t.name, value: t.name,}
+            });
+            return(
+                <div className="container">
+                    <Select
+                        isClearable
+                        options={options}
+                        onInputChange={this.props.handleSelectFilter}
+                    />
+                </div>
             )
         }
     }
