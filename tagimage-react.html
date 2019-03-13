@@ -84,12 +84,14 @@
                 tags: [],
                 selectedImg: '',
                 selectedTag: '',
+                filter: '',
+                filteredImages: [],
             };
             this.addTag = this.addTag.bind(this);
             this.selectImage = this.selectImage.bind(this);
             this.tagImage = this.tagImage.bind(this);
             this.untagImage = this.untagImage.bind(this);
-            this.handleSelectFilter = this.handleSelectFilter.bind(this);
+            this.setFilter = this.setFilter.bind(this);
         }
 
         addTag(v){
@@ -123,8 +125,20 @@
             if (index > -1) tagObj.images.splice(index, 1);
         }
 
-        handleSelectFilter(v){
-            console.log(v)
+        setFilter(v){
+            const { tags, filter } = this.state;
+            console.log(this.state);
+            console.log('filter', filter);
+            console.log(v);
+
+            const filteredImages = tags.find(t => t.name === v.value).images;
+            console.log('filteredImages', filteredImages);
+            if (filteredImages.length > 0) {
+                this.setState({filteredImages})
+            } else {
+                this.setState({filteredImages: { error: 'No images tagged by this tag'}})
+            }
+
         }
 
         render() {
@@ -137,7 +151,7 @@
                         selectedImg={this.state.selectedImg}
                         selectedTag={this.state.selectedTag}
                     />
-                    <FilterDropDown tags={this.state.tags} handleSelectFilter={this.handleSelectFilter} />
+                    <FilterDropDown tags={this.state.tags} onChange={this.setFilter} />
                     <Images
                         selectImage={this.selectImage}
                         images={images}
@@ -329,7 +343,7 @@
                     <Select
                         isClearable
                         options={options}
-                        onInputChange={this.props.handleSelectFilter}
+                        onChange={this.props.onChange}
                     />
                 </div>
             )
