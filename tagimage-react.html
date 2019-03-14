@@ -126,10 +126,9 @@
         }
 
         setFilter(v){
-            const { tags, filter } = this.state;
+            if(v === null) return this.setState({ filter: ''});
+            const { tags } = this.state;
             console.log(this.state);
-            console.log('filter', filter);
-            console.log(v);
 
             const filteredImages = tags.find(t => t.name === v.value).images;
             console.log('filteredImages', filteredImages);
@@ -341,7 +340,7 @@
             return(
                 <div className="container">
                     <Select
-                        isClearable
+                        isClearable="true"
                         options={options}
                         onChange={this.props.onChange}
                     />
