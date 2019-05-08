@@ -65,25 +65,25 @@
 
 <script type="text/babel">
 
-    const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-    const SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-    const SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+    let SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+    let SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList
+    let SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
 
-    const phrase = 'black and white';
+    let colors = [ 'aqua' , 'azure' , 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
+    let grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
 
-    const grammar = '#JSGF V1.0; grammar phrase; public <phrase> = ' + phrase +';';
-    const recognition = new SpeechRecognition();
-    const speechRecognitionList = new SpeechGrammarList();
-    speechRecognitionList.addFromString(grammar, 1);
-    recognition.grammars = speechRecognitionList;
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    const cdn = 'https://www.dropbox.com/s/';
 
-    recognition.start();
-
-
-    const imagesSourced = ['image1.jpg', 'image2.jpg', 'image3.jpg'];
+    const imagesSourced = [
+        'x927n360zwrr4ch/01.jpg',
+        'd4t5bv2ynyatjzv/02.jpg',
+        'l5lq9k1yuqmizg6/03.jpg',
+        'ki0zvrn52v1uief/04.jpg',
+        'wyhkirwx129dq7l/05.jpg',
+        'g7q9vd53btm6ruq/06.jpg',
+        '7e5ercwmqq6fj31/08.jpg',
+        '22x1v398pqw7k2q/07.jpg',
+    ];
 
     const Select = window.Select;
 
@@ -103,15 +103,15 @@
             this.tagImage = this.tagImage.bind(this);
             this.untagImage = this.untagImage.bind(this);
             this.setFilter = this.setFilter.bind(this);
-
-            this.recognition = new webkitSpeechRecognition();
-            this.recognition.continuous = true;
-            this.recognition.interimResults = true;
-            this.recognition.lang = 'en-US';
-            this.recognition.onresult = event => {
-                // do something with event.results
-                console.log(event)
-            }
+            this.handleSpeechFiltering = this.handleSpeechFiltering.bind(this);
+            this.recognition = new SpeechRecognition();
+            this.speechRecognitionList = new SpeechGrammarList();
+            this.speechRecognitionList.addFromString(grammar, 1);
+            this.recognition.grammars = this.speechRecognitionList;
+            this.recognition.continuous = false;
+            this.recognition.lang = 'pl-PL';
+            this.recognition.interimResults = false;
+            this.recognition.maxAlternatives = 1;
         }
 
         addTag(v){
@@ -160,15 +160,37 @@
             else {
                 this.setState({filteredImages: { error: 'No images tagged by this tag'}})
             }
+        }
+
+        handleSpeechFiltering(){
+            let tag = '';
+            this.recognition.start();
+            const recognised = new Promise((resolve, reject) => {
+                this.recognition.onresult = function(event) {
+                    console.log(event);
+                    let last = event.results.length - 1;
+                    tag = event.results[last][0].transcript;
+
+                    console.log(tag);
+                    console.log(last);
+                    console.log('Confidence: ' + event.results[0][0].confidence);
+                    resolve(tag)
+                };
+            });
+            recognised.then((tag) => {
+                console.log(tag);
+                this.setFilter({value: tag})
+            });
 
         }
 
         render() {
             const { filteredImages, images } = this.state;
-            const displayedImages = filteredImages.length > 0 ? filteredImages : images
+            const displayedImages = filteredImages.length > 0 ? filteredImages : images;
 
             return (
                 <div className="app_container">
+                    <button onClick={this.handleSpeechFiltering}> mic </button>
                     <InputTags addTag={this.addTag} />
                     <TagsList
                         tags={this.state.tags}
@@ -204,10 +226,11 @@
                 <div>
                     {images.map((name, index) => {
                         const isSelected = name === props.selectedImg;
+                        console.log(name, index)
                         return (
                             <label key={index}>
                                 <img
-                                    src="https://via.placeholder.com/100x100"
+                                    src={`${cdn}${name}?raw=1`}
                                     id={name}
                                     onClick={handleOnClick}
                                     className={(isSelected ? 'selectedImg': '')}
