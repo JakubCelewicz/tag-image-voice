@@ -47,13 +47,6 @@
 
 <div id="container"></div>
 
-<!--<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>-->
-<!--<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>-->
-<!--<script src="https://unpkg.com/react@16/umd/react.development.js"></script>-->
-<!--<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>-->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>-->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/react-select/2.4.1/react-select.js"></script>-->
-
 <script src="https://unpkg.com/react@16.8.0/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/emotion@9.2.12/dist/emotion.umd.min.js"></script>
 <script src="https://unpkg.com/react-dom@16.8.0/umd/react-dom.production.min.js"></script>
@@ -65,12 +58,13 @@
 
 <script type="text/babel">
 
-    let SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
-    let SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList
-    let SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+    let SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+    let SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
+    let SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 
-    let colors = [ 'aqua' , 'azure' , 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
-    let grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
+    let tagsGrammar = [];
+    // Java Speech Grammar Format
+    let grammar = '#JSGF V1.0; grammar tagsGrammar; public <tag> = ' + tagsGrammar.join(' | ') + ';';
 
     const cdn = 'https://www.dropbox.com/s/';
 
@@ -96,6 +90,7 @@
                 selectedImg: '',
                 selectedTag: '',
                 filter: '',
+                recognizedResult: '',
                 filteredImages: [],
             };
             this.addTag = this.addTag.bind(this);
@@ -108,9 +103,9 @@
             this.speechRecognitionList = new SpeechGrammarList();
             this.speechRecognitionList.addFromString(grammar, 1);
             this.recognition.grammars = this.speechRecognitionList;
-            this.recognition.continuous = false;
+            this.recognition.continuous = true;
             this.recognition.lang = 'pl-PL';
-            this.recognition.interimResults = false;
+            this.recognition.interimResults = true;
             this.recognition.maxAlternatives = 1;
         }
 
@@ -120,6 +115,8 @@
             if(!alreadyExist) {
                 const newTag = { name: v, images: []};
                 this.setState({tags: [ ...tags, newTag]});
+                console.log('tagsGrammar', tagsGrammar);
+                tagsGrammar.push(newTag.name)
             } else {
                 console.log('This tag name already exist')
             }
@@ -127,7 +124,6 @@
 
         selectImage(v){
             this.setState({selectedImg: v, selectedTag: ''});
-            console.log(this.state)
         }
 
         tagImage(v) {
@@ -135,7 +131,6 @@
             const tagObj = tags.find( t => t.name === v);
             this.setState({selectedTag: v});
             !(tagObj.images.includes(selectedImg)) ? tagObj.images.push(selectedImg) : this.untagImage(v, selectedImg);
-            console.log(this.state);
         }
 
         untagImage(tag, img) {
@@ -147,51 +142,56 @@
 
         setFilter(v){
             if(v === null) return this.setState({ filter: '', filteredImages: []});
-            const { tags } = this.state;
-            console.log(this.state);
-
-            const filteredImages = tags.find(t => t.name === v.value).images;
-            console.log('filteredImages', filteredImages);
-            if (filteredImages.length > 0) {
-                this.setState({filteredImages})
+            const tags  = [...this.state.tags];
+            const filteredObj = tags.find(t => t.name === v.value);
+            if (filteredObj && filteredObj.images.length > 0) {
+                this.setState({ filteredImages: filteredObj.images, filter: v.value });
+                console.log('this.state')
             } else if( v === null) {
                 this.setState({ filter: ''});
             }
             else {
                 this.setState({filteredImages: { error: 'No images tagged by this tag'}})
             }
+            this.setState({ recognizedResult: v.value })
         }
 
         handleSpeechFiltering(){
             let tag = '';
             this.recognition.start();
-            const recognised = new Promise((resolve, reject) => {
-                this.recognition.onresult = function(event) {
-                    console.log(event);
-                    let last = event.results.length - 1;
-                    tag = event.results[last][0].transcript;
+            const filter = this.setFilter;
+            this.recognition.onresult = function(event) {
+                console.log(event);
+                let last = event.results.length - 1;
+                tag = event.results[last][0].transcript;
+                console.log('tag', tag);
+                console.log('Confidence: ' + event.results[0][0].confidence);
+                filter({value: tag.trim()});
+            };
 
-                    console.log(tag);
-                    console.log(last);
-                    console.log('Confidence: ' + event.results[0][0].confidence);
-                    resolve(tag)
-                };
-            });
-            recognised.then((tag) => {
-                console.log(tag);
-                this.setFilter({value: tag})
-            });
+            this.recognition.onnomatch = function(event) {
+                console.log('I didnt recognise that', event);
+            };
+
+            this.recognition.onerror = function(event) {
+                console.log('Error occurred in recognition: ' + event.error)
+            };
+
+            this.recognition.onspeechend = function() {
+                console.log('this on speech end');
+            };
 
         }
 
         render() {
-            const { filteredImages, images } = this.state;
+            const { filteredImages, images, recognizedResult } = this.state;
             const displayedImages = filteredImages.length > 0 ? filteredImages : images;
 
             return (
                 <div className="app_container">
                     <button onClick={this.handleSpeechFiltering}> mic </button>
                     <InputTags addTag={this.addTag} />
+                    <h1> {recognizedResult} </h1>
                     <TagsList
                         tags={this.state.tags}
                         handleTagImage={this.tagImage}
@@ -226,7 +226,6 @@
                 <div>
                     {images.map((name, index) => {
                         const isSelected = name === props.selectedImg;
-                        console.log(name, index)
                         return (
                             <label key={index}>
                                 <img
@@ -344,7 +343,6 @@
         )
 
     }
-
 
     ReactDOM.render(<App />,
         document.getElementById('container')
