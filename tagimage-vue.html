@@ -55,14 +55,28 @@
 </div>
 
 <script type="text/javascript">
-    const images = ['image1.jpg', 'image2.jpg', 'image3.jpg'];
+
+   const cdn = 'https://www.dropbox.com/s/'; // not visible to template
+   const raw = '?raw=1';  // not visible to template
+   const imagesSourced = [
+    `x927n360zwrr4ch/01.jpg`,
+    `d4t5bv2ynyatjzv/02.jpg`,
+    `l5lq9k1yuqmizg6/03.jpg`,
+    `ki0zvrn52v1uief/04.jpg`,
+    `wyhkirwx129dq7l/05.jpg`,
+    `g7q9vd53btm6ruq/06.jpg`,
+    `7e5ercwmqq6fj31/08.jpg`,
+    `22x1v398pqw7k2q/07.jpg`,
+   ];
+   const images = imagesSourced.map(image => cdn + image + raw);
+
 
     Vue.component('images', {
         props: ['image'],
         template: `
           <div class="image_container">
             <label>
-                <img src="https://via.placeholder.com/100x100"
+                <img v-bind:src=image
                      v-bind:id=image
                      alt:image
                      title:image
