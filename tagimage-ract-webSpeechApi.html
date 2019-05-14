@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>IMG selector</title>
+    <style>
+
+        body {
+            padding: 2em;
+        }
+        .container {
+            display: flex;
+            flex-flow: row wrap;
+            font-weight: bold;
+            text-align: center;
+            max-width: 920px;
+        }
+
+        img {
+            padding: 5px;
+        }
+
+        input, button {
+            margin: 3px 5px;
+        }
+
+        div.tagsContainer {
+            margin: 10px 0;
+            padding: 5px;
+        }
+
+        .selectedImg {
+            padding: 2px;
+            border: 2px solid blue;
+        }
+
+        .selectedTag {
+            background: #666;
+        }
+
+        .tagged {
+            background: black;
+            color: white;
+        }
+
+        .container > * {
+            padding: 10px;
+            flex: 1 100%;
+        }
+
+        .header {
+            /*background: tomato;*/
+        }
+
+        .filter {
+            width: 200px;
+        }
+
+        .footer {
+            background: #f8f8f8;
+        }
+
+        .main {
+            text-align: left;
+        }
+
+        .aside {
+            background: #ebebeb;
+            margin: 15px 0px;
+        }
+
+        .newTag {
+            margin-top: 10px;
+        }
+
+        @media all and (min-width: 600px) {
+            .aside { flex: 1 0 0; }
+            .aside   { order: 1; }
+            .main    { order: 2; }
+            img { width: 150px }
+        }
+
+        @media all and (min-width: 800px) {
+            .main    { flex: 3 0px; }
+            .main    { order: 1; }
+            .aside   { order: 2; }
+            .footer  { order: 3; }
+            .filter  { order: 1; }
+            img { width: 200px }
+        }
+
+        .mic {
+            height: 20px;
+            width: 20px;
+            background-color: #ff0005;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@16.8.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emotion@9.2.12/dist/emotion.umd.min.js"></script>
+<script src="https://unpkg.com/react-dom@16.8.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.5.10/prop-types.min.js"></script>
+<script src="https://unpkg.com/react-input-autosize@2.2.1/dist/react-input-autosize.min.js"></script>
+<script src="https://unpkg.com/react-select@2.1.2/dist/react-select.min.js"></script>
+
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<script type="text/babel">
+
+    let SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+    let SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
+    let SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+
+    let tagsGrammar = [];
+    // Java Speech Grammar Format
+    let grammar = '#JSGF V1.0; grammar tagsGrammar; public <tag> = ' + tagsGrammar.join(' | ') + ';';
+
+    const cdn = 'https://www.dropbox.com/s/';
+
+    const imagesSourced = [
+        'x927n360zwrr4ch/01.jpg',
+        'd4t5bv2ynyatjzv/02.jpg',
+        'l5lq9k1yuqmizg6/03.jpg',
+        'ki0zvrn52v1uief/04.jpg',
+        'wyhkirwx129dq7l/05.jpg',
+        'g7q9vd53btm6ruq/06.jpg',
+        '7e5ercwmqq6fj31/08.jpg',
+        '22x1v398pqw7k2q/07.jpg',
+    ];
+
+    const Select = window.Select;
+
+    class App extends React.Component{
+        constructor(p){
+            super(p);
+            this.state = {
+                images: imagesSourced,
+                tags: [],
+                selectedImg: '',
+                selectedTag: '',
+                filter: '',
+                recognizedResult: '',
+                filteredImages: [],
+            };
+            this.addTag = this.addTag.bind(this);
+            this.selectImage = this.selectImage.bind(this);
+            this.tagImage = this.tagImage.bind(this);
+            this.untagImage = this.untagImage.bind(this);
+            this.setFilter = this.setFilter.bind(this);
+            this.handleSpeechFiltering = this.handleSpeechFiltering.bind(this);
+            this.recognition = new SpeechRecognition();
+            this.speechRecognitionList = new SpeechGrammarList();
+            this.speechRecognitionList.addFromString(grammar, 1);
+            this.recognition.grammars = this.speechRecognitionList;
+            this.recognition.continuous = true;
+            this.recognition.lang = 'pl-PL';
+            this.recognition.interimResults = true;
+            this.recognition.maxAlternatives = 1;
+        }
+
+        addTag(v){
+            const { tags } = this.state;
+            const alreadyExist = tags.find( t => t.name === v);
+            if(!alreadyExist) {
+                const newTag = { name: v, images: []};
+                this.setState({tags: [ ...tags, newTag]});
+                console.log('tagsGrammar', tagsGrammar);
+                tagsGrammar.push(newTag.name)
+            } else {
+                console.log('This tag name already exist')
+            }
+        }
+
+        selectImage(v){
+            this.setState({selectedImg: v, selectedTag: ''});
+        }
+
+        tagImage(v) {
+            const { tags, selectedImg } = this.state;
+            const tagObj = tags.find( t => t.name === v);
+            this.setState({selectedTag: v});
+            !(tagObj.images.includes(selectedImg)) ? tagObj.images.push(selectedImg) : this.untagImage(v, selectedImg);
+        }
+
+        untagImage(tag, img) {
+            const { tags } = this.state;
+            const tagObj = tags.find( t => t.name === tag);
+            const index = tagObj.images.indexOf(img);
+            if (index > -1) tagObj.images.splice(index, 1);
+        }
+
+        setFilter(v){
+            if(v === null) return this.setState({ filter: '', filteredImages: []});
+            const tags  = [...this.state.tags];
+            const filteredObj = tags.find(t => t.name === v.value);
+            if (filteredObj && filteredObj.images.length > 0) {
+                this.setState({ filteredImages: filteredObj.images, filter: v.value });
+                console.log('this.state')
+            } else if( v === null) {
+                this.setState({ filter: ''});
+            }
+            else {
+                this.setState({filteredImages: { error: 'No images tagged by this tag'}})
+            }
+            this.setState({ recognizedResult: v.value })
+        }
+
+        handleSpeechFiltering(){
+            let tag = '';
+            this.recognition.start();
+            const filter = this.setFilter;
+            this.recognition.onresult = function(event) {
+                console.log(event);
+                let last = event.results.length - 1;
+                tag = event.results[last][0].transcript;
+                console.log('tag', tag);
+                console.log('Confidence: ' + event.results[0][0].confidence);
+                filter({value: tag.trim()});
+            };
+
+            this.recognition.onnomatch = function(event) {
+                console.log('I didnt recognise that', event);
+            };
+
+            this.recognition.onerror = function(event) {
+                console.log('Error occurred in recognition: ' + event.error)
+            };
+
+            this.recognition.onspeechend = function() {
+                console.log('this on speech end');
+            };
+
+        }
+
+        render() {
+            const { filteredImages, images, recognizedResult } = this.state;
+            const displayedImages = filteredImages.length > 0 ? filteredImages : images;
+
+            return (
+
+                <div className="container">
+                    <header className="header">
+                        <div  onClick={this.handleSpeechFiltering} className="mic"></div>
+                        <h1> {recognizedResult} </h1>
+                    </header>
+                    <div className="filter">
+                        <FilterDropDown tags={this.state.tags} onChange={this.setFilter} />
+                    </div>
+                    <section className="main">
+                        {filteredImages.error ?
+                            <div>{ filteredImages.error }</div>
+                            :
+                            <Images
+                                selectImage={this.selectImage}
+                                images={displayedImages}
+                                selectedImg={this.state.selectedImg}
+                            />
+                        }
+                    </section>
+                    <aside className="aside">
+                        <InputTags addTag={this.addTag} />
+                        <div className="tagsContainer">
+                            <TagsList
+                                tags={this.state.tags}
+                                handleTagImage={this.tagImage}
+                                selectedImg={this.state.selectedImg}
+                            />
+                        </div>
+                    </aside>
+                    <footer className="footer">React WebSpeechApi sortable gallery - Jakub Celewicz </footer>
+                </div>
+            )
+        }
+    }
+
+    function Images(props) {
+
+        function handleOnClick(e) {
+            props.selectImage(e.target.id);
+        }
+
+        function imageList(){
+            const { images } = props;
+            return (
+                <div>
+                    {images.map((name, index) => {
+                        const isSelected = name === props.selectedImg;
+                        return (
+                            <label key={index}>
+                                <img
+                                    src={`${cdn}${name}?raw=1`}
+                                    id={name}
+                                    onClick={handleOnClick}
+                                    className={(isSelected ? 'selectedImg': '')}
+                                />
+                            </label>
+                        )
+                    })}
+                </div>
+            )
+        }
+
+        const images = imageList();
+        return (
+            <div className="image_container">
+                {images}
+            </div>
+        )
+    }
+
+    class InputTags extends React.Component{
+        constructor(p){
+            super(p);
+            this.state = {
+                tagName: '',
+                isDisabled: true,
+            };
+
+            this.handleOnClick = this.handleOnClick.bind(this);
+            this.handleOnChange = this.handleOnChange.bind(this);
+            this.handleOnKeyPress = this.handleOnKeyPress.bind(this);
+        }
+
+        handleOnClick(){
+            const { tagName } = this.state;
+            this.props.addTag(tagName);
+            this.setState({tagName: ''})
+        }
+
+        handleOnKeyPress(e){
+            if(e.charCode === 13){
+                e.preventDefault();
+                this.handleOnClick();
+            }
+        }
+
+
+        handleOnChange(e){
+            this.setState({tagName: e.target.value, isDisabled: false});
+        }
+
+        render() {
+            const { isDisabled } = this.state;
+            return (
+                <div className="newTag">
+                    <input type="text" name="tag"
+                           value={this.state.tagName}
+                           onChange={this.handleOnChange}
+                           onKeyPress={this.handleOnKeyPress}
+                    />
+                    <button
+                        onClick={this.handleOnClick}
+                        disabled={isDisabled}
+                        className="{`add ${isDisabled}? 'disabled' : ''`}">
+                        +
+                    </button>
+                </div>
+            )
+        }
+    }
+
+    function TagsList(props) {
+
+        const { tags, selectedImg, handleTagImage } = props;
+
+        function handleOnClick(e){
+            handleTagImage(e.target.value)
+        }
+
+        return (
+            tags.map( (tag, index) => {
+                    const isImgTagged = selectedImg && tag.images.includes(selectedImg);
+                    return (
+                        <button key={index}
+                                value={tag.name}
+                                onClick={handleOnClick}
+                                className={(isImgTagged ? 'tagged' : '')}
+                        >
+                            {tag.name}
+                        </button>
+                    )
+                }
+            )
+        )
+
+    }
+
+    function FilterDropDown(props) {
+
+        const options = props.tags.map(t => {
+            return {label: t.name, value: t.name,}
+        });
+
+        return(
+            <div className="container">
+                <Select
+                    isClearable="true"
+                    options={options}
+                    onChange={props.onChange}
+                />
+            </div>
+        )
+
+    }
+
+    ReactDOM.render(<App />,
+        document.getElementById('app')
+    )
+</script>
+
+</body>
+</html>
+
+
