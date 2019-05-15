@@ -146,8 +146,6 @@
             if (filteredObj && filteredObj.images.length > 0) {
                 this.setState({filteredImages: filteredObj.images, filter: v.value});
                 console.log('this.state')
-            } else if (v === null) {
-                this.setState({filter: ''});
             } else {
                 this.setState({filteredImages: {error: 'No images tagged by this tag'}})
             }
@@ -204,6 +202,7 @@
                                     id={name}
                                     onClick={handleOnClick}
                                     className={(isSelected ? 'selectedImg' : '')}
+                                    alt="image title"
                                 />
                             </label>
                         )
@@ -254,11 +253,13 @@
             const {isDisabled} = this.state;
             return (
                 <div className="add-new-tag">
-                    <input type="text" name="tag"
-                           value={this.state.tagName}
-                           onChange={this.handleOnChange}
-                           onKeyPress={this.handleOnKeyPress}
-                    />
+                    <label title="input new tag">
+                        <input type="text" name="tag"
+                               value={this.state.tagName}
+                               onChange={this.handleOnChange}
+                               onKeyPress={this.handleOnKeyPress}
+                        />
+                    </label>
                     <button
                         onClick={this.handleOnClick}
                         disabled={isDisabled}

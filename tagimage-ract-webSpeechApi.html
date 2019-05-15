@@ -120,13 +120,14 @@
 
 <script type="text/babel">
 
-    let SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-    let SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-    let SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+    const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+    const SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
+    const SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 
-    let tagsGrammar = [];
+    const tagsGrammar = [];
     // Java Speech Grammar Format
-    let grammar = '#JSGF V1.0; grammar tagsGrammar; public <tag> = ' + tagsGrammar.join(' | ') + ';';
+    const grammar = '#JSGF V1.0; grammar tagsGrammar; public <tagsGrammar> = ' + tagsGrammar.join(' | ') + ';';
+
     const cdn = 'https://www.dropbox.com/s/';
     const imagesSourced = [
         'x927n360zwrr4ch/01.jpg',
@@ -201,16 +202,13 @@
         }
 
         setFilter(v){
-            if(v === null) return this.setState({ filter: '', filteredImages: []});
+            if(v === null) return this.setState({ filter: '', filteredImages: [], recognizedResult: ''});
             const tags  = [...this.state.tags];
             const filteredObj = tags.find(t => t.name === v.value);
             if (filteredObj && filteredObj.images.length > 0) {
                 this.setState({ filteredImages: filteredObj.images, filter: v.value });
-            } else if( v === null) {
-                this.setState({ filter: ''});
-            }
-            else {
-                this.setState({filteredImages: { error: 'No images tagged by this tag'}})
+            } else {
+                this.setState({filteredImages: {error: 'No images tagged by this tag'}})
             }
             this.setState({ recognizedResult: v.value })
         }
@@ -302,6 +300,7 @@
                                     id={name}
                                     onClick={handleOnClick}
                                     className={(isSelected ? 'selectedImg': '')}
+                                    alt="image title"
                                 />
                             </label>
                         )
