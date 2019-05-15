@@ -121,9 +121,7 @@
     let tagsGrammar = [];
     // Java Speech Grammar Format
     let grammar = '#JSGF V1.0; grammar tagsGrammar; public <tag> = ' + tagsGrammar.join(' | ') + ';';
-
     const cdn = 'https://www.dropbox.com/s/';
-
     const imagesSourced = [
         'x927n360zwrr4ch/01.jpg',
         'd4t5bv2ynyatjzv/02.jpg',
@@ -134,7 +132,6 @@
         '7e5ercwmqq6fj31/08.jpg',
         '22x1v398pqw7k2q/07.jpg',
     ];
-
     const Select = window.Select;
 
     class App extends React.Component{
@@ -247,7 +244,7 @@
 
                 <div className="container">
                     <header className="header">
-                        <div  onClick={this.handleSpeechFiltering} className="mic"></div>
+                        <div  onClick={this.handleSpeechFiltering} className="mic"> </div>
                         <h1> {recognizedResult} </h1>
                     </header>
                     <div className="filter">
@@ -274,7 +271,7 @@
                             />
                         </div>
                     </aside>
-                    <footer className="footer">React WebSpeechApi sortable gallery - Jakub Celewicz </footer>
+                    <footer className="footer">ReactJS + WebSpeechApi sortable gallery - Jakub Celewicz </footer>
                 </div>
             )
         }
@@ -295,7 +292,7 @@
                         return (
                             <label key={index}>
                                 <img
-                                    src={`${cdn}${name}?raw=1`}
+                                    src={cdn+name+'?raw=1'}
                                     id={name}
                                     onClick={handleOnClick}
                                     className={(isSelected ? 'selectedImg': '')}

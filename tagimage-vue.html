@@ -10,32 +10,49 @@
             text-align: center;
             font-size: 18px;
         }
-        section { padding: 10px }
+
+        section {
+            padding: 10px
+        }
+
         .image_container {
             padding: 5px;
         }
+
         .included {
             background-color: black;
             color: white;
         }
+
         .selected {
             border: 2px solid blue;
         }
+
         .disabledDiv {
             opacity: 0.5;
             pointer-events: none;
             padding: 10px;
         }
+
         .filter-wrapper {
             background: azure;
 
         }
+
         .dropdown {
             float: right;
             width: 150px;
         }
-        .tags { padding: 10px }
-        .images > div { display: inline; padding: 10px;}
+
+        .tags {
+            padding: 10px
+        }
+
+        .images > div {
+            display: inline;
+            padding: 10px;
+        }
+
         .tag {
             padding: 10px;
             display: inline;
@@ -46,30 +63,34 @@
 <div id="app">
     <input class="form-control" placeholder="add new tag" v-model="newStore" @keydown.enter="addTag"/>
     <section class="tags">
-        <tags v-for="item in tags" v-bind:store="item.text" v-bind:key="item.index" class="tag"> </tags>
+        <tags v-for="item in tags" v-bind:store="item.text" v-bind:key="item.index" class="tag"></tags>
         <v-select v-model="filtered" :options="getTags()"></v-select>
     </section>
     <section class="images">
-        <images v-for="item in filteredImages || images" v-bind:image="item" v-bind:key="item" @selected="selectImage(item)"></images>
+        <images v-for="item in filteredImages || images"
+                v-bind:image="item"
+                v-bind:key="item"
+                @selected="selectImage(item)">
+
+        </images>
     </section>
 </div>
 
 <script type="text/javascript">
 
-   const cdn = 'https://www.dropbox.com/s/'; // not visible to template
-   const raw = '?raw=1';  // not visible to template
-   const imagesSourced = [
-    `x927n360zwrr4ch/01.jpg`,
-    `d4t5bv2ynyatjzv/02.jpg`,
-    `l5lq9k1yuqmizg6/03.jpg`,
-    `ki0zvrn52v1uief/04.jpg`,
-    `wyhkirwx129dq7l/05.jpg`,
-    `g7q9vd53btm6ruq/06.jpg`,
-    `7e5ercwmqq6fj31/08.jpg`,
-    `22x1v398pqw7k2q/07.jpg`,
-   ];
-   const images = imagesSourced.map(image => cdn + image + raw);
-
+    const cdn = 'https://www.dropbox.com/s/'; // not visible to template
+    const raw = '?raw=1';  // not visible to template
+    const imagesSourced = [
+        `x927n360zwrr4ch/01.jpg`,
+        `d4t5bv2ynyatjzv/02.jpg`,
+        `l5lq9k1yuqmizg6/03.jpg`,
+        `ki0zvrn52v1uief/04.jpg`,
+        `wyhkirwx129dq7l/05.jpg`,
+        `g7q9vd53btm6ruq/06.jpg`,
+        `7e5ercwmqq6fj31/08.jpg`,
+        `22x1v398pqw7k2q/07.jpg`,
+    ];
+    const images = imagesSourced.map(image => cdn + image + raw);
 
     Vue.component('images', {
         props: ['image'],
@@ -87,8 +108,12 @@
           </div>
           `,
         methods: {
-            selected() { this.$emit('selected') },
-            isSelected() { return this.$parent.selected === this.image }
+            selected() {
+                this.$emit('selected')
+            },
+            isSelected() {
+                return this.$parent.selected === this.image
+            }
         },
     });
 
@@ -101,12 +126,12 @@
                   </div>`,
         methods: {
             addToStore() {
-                const storeArr = this.$parent.tags.find( obj => obj.text === this.store).images;
+                const storeArr = this.$parent.tags.find(obj => obj.text === this.store).images;
                 const isIncluded = storeArr.includes(this.$parent.selected);
-                if(!isIncluded) {
+                if (!isIncluded) {
                     storeArr.push(this.$parent.selected)
                 } else {
-                    for (let i=storeArr.length-1; i>=0; i--) {
+                    for (let i = storeArr.length - 1; i >= 0; i--) {
                         if (storeArr[i] === this.$parent.selected) {
                             storeArr.splice(i, 1);
                             break;
@@ -126,8 +151,10 @@
     new Vue({
         el: '#app',
         data: function () {
-            return { images: images, index: null, newStore: '', tags: [], selected: '', filtered: null,
-            filteredImages: null};
+            return {
+                images: images, index: null, newStore: '', tags: [], selected: '', filtered: null,
+                filteredImages: null
+            };
         },
         methods: {
             addTag() {
@@ -145,7 +172,7 @@
             getTags() {
                 return this.tags.map(t => t.text)
             }
-    },
+        },
         watch: {
             tags: {
                 handler() {
@@ -156,9 +183,9 @@
             filtered: {
                 handler() {
 
-                    if(this.filtered) {
+                    if (this.filtered) {
                         const filteredImages = this.tags.find(t => t.text === this.filtered).images
-                        if(filteredImages.length > 0) {
+                        if (filteredImages.length > 0) {
                             this.filteredImages = filteredImages
                         }
                     } else {

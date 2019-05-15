@@ -8,37 +8,50 @@
             text-align: center;
             font-size: 18px;
         }
+
         .add-new-tag {
             width: 100%;
-            height: 100px;
+            height: 60px;
             border: 1px solid #eee;
         }
+
         .disabled {
             opacity: 30%;
         }
+
         button.add {
             width: 36px;
             height: 20px;
             margin: 5px;
         }
+
         button {
             margin: 2px 3px;
         }
+
         .image_container {
             padding: 5px;
         }
+
         img {
             margin: 5px;
         }
+
         .selectedImg {
             border: 2px solid blue;
         }
+
         .tagged {
             background: black;
             color: white;
         }
+
         .selectedTag {
             background: #666;
+        }
+
+        .dd_container, .images_container {
+            margin: 10px;
         }
 
     </style>
@@ -58,16 +71,7 @@
 
 <script type="text/babel">
 
-    let SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-    let SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-    let SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
-
-    let tagsGrammar = [];
-    // Java Speech Grammar Format
-    let grammar = '#JSGF V1.0; grammar tagsGrammar; public <tag> = ' + tagsGrammar.join(' | ') + ';';
-
     const cdn = 'https://www.dropbox.com/s/';
-
     const imagesSourced = [
         'x927n360zwrr4ch/01.jpg',
         'd4t5bv2ynyatjzv/02.jpg',
@@ -81,8 +85,8 @@
 
     const Select = window.Select;
 
-    class App extends React.Component{
-        constructor(p){
+    class App extends React.Component {
+        constructor(p) {
             super(p);
             this.state = {
                 images: imagesSourced,
@@ -98,109 +102,69 @@
             this.tagImage = this.tagImage.bind(this);
             this.untagImage = this.untagImage.bind(this);
             this.setFilter = this.setFilter.bind(this);
-            this.handleSpeechFiltering = this.handleSpeechFiltering.bind(this);
-            this.recognition = new SpeechRecognition();
-            this.speechRecognitionList = new SpeechGrammarList();
-            this.speechRecognitionList.addFromString(grammar, 1);
-            this.recognition.grammars = this.speechRecognitionList;
-            this.recognition.continuous = true;
-            this.recognition.lang = 'pl-PL';
-            this.recognition.interimResults = true;
-            this.recognition.maxAlternatives = 1;
         }
 
-        addTag(v){
-            const { tags } = this.state;
-            const alreadyExist = tags.find( t => t.name === v);
-            if(!alreadyExist) {
-                const newTag = { name: v, images: []};
-                this.setState({tags: [ ...tags, newTag]});
-                console.log('tagsGrammar', tagsGrammar);
-                tagsGrammar.push(newTag.name)
+        addTag(v) {
+            const {tags} = this.state;
+            const alreadyExist = tags.find(t => t.name === v);
+            if (!alreadyExist) {
+                const newTag = {name: v, images: []};
+                this.setState({tags: [...tags, newTag]});
             } else {
                 console.log('This tag name already exist')
             }
         }
 
-        selectImage(v){
+        selectImage(v) {
             this.setState({selectedImg: v, selectedTag: ''});
         }
 
         tagImage(v) {
-            const { tags, selectedImg } = this.state;
-            const tagObj = tags.find( t => t.name === v);
+            const {tags, selectedImg} = this.state;
+            const tagObj = tags.find(t => t.name === v);
             this.setState({selectedTag: v});
             !(tagObj.images.includes(selectedImg)) ? tagObj.images.push(selectedImg) : this.untagImage(v, selectedImg);
         }
 
         untagImage(tag, img) {
-            const { tags } = this.state;
-            const tagObj = tags.find( t => t.name === tag);
+            const {tags} = this.state;
+            const tagObj = tags.find(t => t.name === tag);
             const index = tagObj.images.indexOf(img);
             if (index > -1) tagObj.images.splice(index, 1);
         }
 
-        setFilter(v){
-            if(v === null) return this.setState({ filter: '', filteredImages: []});
-            const tags  = [...this.state.tags];
+        setFilter(v) {
+            if (v === null) return this.setState({filter: '', filteredImages: []});
+            const tags = [...this.state.tags];
             const filteredObj = tags.find(t => t.name === v.value);
             if (filteredObj && filteredObj.images.length > 0) {
-                this.setState({ filteredImages: filteredObj.images, filter: v.value });
+                this.setState({filteredImages: filteredObj.images, filter: v.value});
                 console.log('this.state')
-            } else if( v === null) {
-                this.setState({ filter: ''});
+            } else if (v === null) {
+                this.setState({filter: ''});
+            } else {
+                this.setState({filteredImages: {error: 'No images tagged by this tag'}})
             }
-            else {
-                this.setState({filteredImages: { error: 'No images tagged by this tag'}})
-            }
-            this.setState({ recognizedResult: v.value })
+            this.setState({recognizedResult: v.value})
         }
 
-        handleSpeechFiltering(){
-            let tag = '';
-            this.recognition.start();
-            const filter = this.setFilter;
-            this.recognition.onresult = function(event) {
-                console.log(event);
-                let last = event.results.length - 1;
-                tag = event.results[last][0].transcript;
-                console.log('tag', tag);
-                console.log('Confidence: ' + event.results[0][0].confidence);
-                filter({value: tag.trim()});
-            };
-
-            this.recognition.onnomatch = function(event) {
-                console.log('I didnt recognise that', event);
-            };
-
-            this.recognition.onerror = function(event) {
-                console.log('Error occurred in recognition: ' + event.error)
-            };
-
-            this.recognition.onspeechend = function() {
-                console.log('this on speech end');
-            };
-
-        }
 
         render() {
-            const { filteredImages, images, recognizedResult } = this.state;
+            const {filteredImages, images} = this.state;
             const displayedImages = filteredImages.length > 0 ? filteredImages : images;
 
             return (
                 <div className="app_container">
-                    <button onClick={this.handleSpeechFiltering}> mic </button>
-                    <InputTags addTag={this.addTag} />
-                    <h1> {recognizedResult} </h1>
+                    <InputTags addTag={this.addTag}/>
                     <TagsList
                         tags={this.state.tags}
                         handleTagImage={this.tagImage}
                         selectedImg={this.state.selectedImg}
                     />
-                    <FilterDropDown tags={this.state.tags} onChange={this.setFilter} />
+                    <FilterDropDown tags={this.state.tags} onChange={this.setFilter}/>
 
                     {filteredImages.error ?
-                        <div>{ filteredImages.error }</div>
+                        <div>{filteredImages.error}</div>
                         :
                         <Images
                             selectImage={this.selectImage}
@@ -220,8 +184,8 @@
             props.selectImage(e.target.id);
         }
 
-     function imageList(){
-            const { images } = props;
+        function imageList() {
+            const {images} = props;
             return (
                 <div>
                     {images.map((name, index) => {
@@ -232,7 +196,7 @@
                                     src={`${cdn}${name}?raw=1`}
                                     id={name}
                                     onClick={handleOnClick}
-                                    className={(isSelected ? 'selectedImg': '')}
+                                    className={(isSelected ? 'selectedImg' : '')}
                                 />
                             </label>
                         )
@@ -249,8 +213,8 @@
         )
     }
 
-    class InputTags extends React.Component{
-        constructor(p){
+    class InputTags extends React.Component {
+        constructor(p) {
             super(p);
             this.state = {
                 tagName: '',
@@ -262,26 +226,25 @@
             this.handleOnKeyPress = this.handleOnKeyPress.bind(this);
         }
 
-        handleOnClick(){
-            const { tagName } = this.state;
+        handleOnClick() {
+            const {tagName} = this.state;
             this.props.addTag(tagName);
             this.setState({tagName: ''})
         }
 
-        handleOnKeyPress(e){
-            if(e.charCode === 13){
+        handleOnKeyPress(e) {
+            if (e.charCode === 13) {
                 e.preventDefault();
                 this.handleOnClick();
             }
         }
 
-
-        handleOnChange(e){
+        handleOnChange(e) {
             this.setState({tagName: e.target.value, isDisabled: false});
         }
 
         render() {
-            const { isDisabled } = this.state;
+            const {isDisabled} = this.state;
             return (
                 <div className="add-new-tag">
                     <input type="text" name="tag"
@@ -302,14 +265,14 @@
 
     function TagsList(props) {
 
-        const { tags, selectedImg, handleTagImage } = props;
+        const {tags, selectedImg, handleTagImage} = props;
 
-        function handleOnClick(e){
+        function handleOnClick(e) {
             handleTagImage(e.target.value)
         }
 
         return (
-            tags.map( (tag, index) => {
+            tags.map((tag, index) => {
                     const isImgTagged = selectedImg && tag.images.includes(selectedImg);
                     return (
                         <button key={index}
@@ -332,8 +295,8 @@
             return {label: t.name, value: t.name,}
         });
 
-        return(
-            <div className="container">
+        return (
+            <div className="dd_container">
                 <Select
                     isClearable="true"
                     options={options}
@@ -341,10 +304,9 @@
                 />
             </div>
         )
-
     }
 
-    ReactDOM.render(<App />,
+    ReactDOM.render(<App/>,
         document.getElementById('container')
     )
 </script>
