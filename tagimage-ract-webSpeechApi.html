@@ -152,6 +152,7 @@
             this.untagImage = this.untagImage.bind(this);
             this.setFilter = this.setFilter.bind(this);
             this.handleSpeechFiltering = this.handleSpeechFiltering.bind(this);
+
             this.recognition = new SpeechRecognition();
             this.speechRecognitionList = new SpeechGrammarList();
             this.speechRecognitionList.addFromString(grammar, 1);
@@ -199,7 +200,6 @@
             const filteredObj = tags.find(t => t.name === v.value);
             if (filteredObj && filteredObj.images.length > 0) {
                 this.setState({ filteredImages: filteredObj.images, filter: v.value });
-                console.log('this.state')
             } else if( v === null) {
                 this.setState({ filter: ''});
             }
@@ -386,7 +386,6 @@
                 }
             )
         )
-
     }
 
     function FilterDropDown(props) {

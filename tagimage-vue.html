@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
     <script src="https://unpkg.com/vue@latest"></script>
     <script src="https://unpkg.com/vue-select@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/vue-select@latest/dist/vue-select.css">
@@ -182,7 +181,6 @@
             },
             filtered: {
                 handler() {
-
                     if (this.filtered) {
                         const filteredImages = this.tags.find(t => t.text === this.filtered).images
                         if (filteredImages.length > 0) {
