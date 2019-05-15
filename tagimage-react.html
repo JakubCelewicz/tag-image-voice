@@ -54,6 +54,12 @@
             margin: 10px;
         }
 
+        .disabledDiv {
+            opacity: 0.5;
+            pointer-events: none;
+            padding: 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -150,17 +156,19 @@
 
 
         render() {
-            const {filteredImages, images} = this.state;
+            const {filteredImages, images, selectedImg} = this.state;
             const displayedImages = filteredImages.length > 0 ? filteredImages : images;
 
             return (
                 <div className="app_container">
                     <InputTags addTag={this.addTag}/>
-                    <TagsList
-                        tags={this.state.tags}
-                        handleTagImage={this.tagImage}
-                        selectedImg={this.state.selectedImg}
-                    />
+                    <div className={(selectedImg ? '' : 'disabledDiv')}>
+                        <TagsList
+                            tags={this.state.tags}
+                            handleTagImage={this.tagImage}
+                            selectedImg={this.state.selectedImg}
+                        />
+                    </div>
                     <FilterDropDown tags={this.state.tags} onChange={this.setFilter}/>
 
                     {filteredImages.error ?

@@ -1,0 +1,32 @@
+Podobieństwa
+
+1) Virtual DOM ( JS abstraction of HTML DOM )
+2) Komponenty
+
+
+Różnice
+
+---------------  BIBLIOTEKA / FRAMEWORK ----------------
+
+React - czysty React to biblioteka ( reactRouter, Redux, Mobx - third Party )
+VUE - directives, transitions, routing, state - Vues - core team
+
+---------------- STATE / DATA-MUTATION ----------------
+
+React - Daje więcej możliwości nad kontrolą re-renderowania (  shouldComponentUpdate , livecycle hook, setState callback )
+Vue - state jest reprezentowany przez data ( mutacja data powoduje rerendering ale nie
+ zawsze np jeżeli mutujemy zagnieżdzony objekt w data. )
+
+
++ dla React
+ Bardziej zgodny z FP ( zależy od nawyków programisty )
+ 16.8 hooks  // https://reactjs.org/docs/hooks-intro.html
+ Stabilny
+ ReactNative albo Electron
+ Wiecej ofert pracy
+
+
++ dla Vue
+
+Nauczalność - szybciej można coś napisać, dodatkowe mechanizmy ( @keydown.enter )
+Mniej kodu ten sam efekt

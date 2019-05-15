@@ -56,6 +56,9 @@
             padding: 10px;
             display: inline;
         }
+        .v-select {
+            margin: 10px;
+        }
     </style>
 </head>
 <body>
@@ -137,7 +140,6 @@
                         }
                     }
                 }
-                console.log('storeArr', storeArr);
             },
             isIncluded() {
                 return this.$parent.tags.find((obj) => obj.text === this.store).images.includes(this.$parent.selected);
@@ -175,7 +177,8 @@
         watch: {
             tags: {
                 handler() {
-                    console.log(JSON.parse(JSON.stringify(this.tags)));
+                    // console.log(this.tags);
+                    // console.log(JSON.parse(JSON.stringify(this.tags)));
                 },
                 deep: true,
             },
@@ -193,6 +196,7 @@
             }
         },
     });
+    // https://vuejs.org/v2/guide/state-management.html  - share common store
 </script>
 
 </body>
